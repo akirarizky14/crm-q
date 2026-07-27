@@ -1,0 +1,129 @@
+.lead-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lead-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.lead-field input,
+.lead-field select,
+.lead-field textarea {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 400;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-grad-from);
+  color: var(--text-h);
+  outline: none;
+  resize: vertical;
+}
+.lead-field input:focus,
+.lead-field select:focus,
+.lead-field textarea:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.lead-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 460px) {
+  .lead-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lead-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.lead-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 4px;
+}
+.lead-delete-btn:hover {
+  text-decoration: underline;
+}
+
+.import-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.import-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.import-step-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.import-template-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.import-template-link:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.import-file-input {
+  font-size: 13px;
+}
+
+.import-summary {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-bg);
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.import-summary.has-errors {
+  background: var(--warning-bg);
+  color: var(--warning);
+}

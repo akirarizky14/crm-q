@@ -1,0 +1,90 @@
+/* Crown Car Rental — "Ivory & Gold" design tokens */
+:root {
+  --bg-grad-from: #faf6ee;
+  --bg-grad-to: #f1e9d8;
+  --surface: #ffffff;
+  --surface-dark: #14120f;
+  --surface-dark-2: #221e17;
+
+  --accent: #c9a24b;
+  --accent-strong: #ad863a;
+  --accent-bg: rgba(201, 162, 75, 0.12);
+  --accent-border: rgba(201, 162, 75, 0.5);
+
+  --text-h: #1a1712;
+  --text: #6e6658;
+  --text-soft: #9a9182;
+  --text-on-dark: #f5f1e6;
+  --text-on-dark-soft: #cabfa9;
+
+  --border: #e7e0d2;
+  --border-soft: #efe9dd;
+
+  --success: #4c7a52;
+  --success-bg: rgba(76, 122, 82, 0.12);
+  --warning: #b7791f;
+  --warning-bg: rgba(183, 121, 31, 0.14);
+  --danger: #b3453b;
+  --danger-bg: rgba(179, 69, 59, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(26, 23, 18, 0.06);
+  --shadow-md: 0 8px 24px -8px rgba(26, 23, 18, 0.16);
+  --shadow-lg: 0 20px 48px -16px rgba(26, 23, 18, 0.22);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --sans: 'Segoe UI', system-ui, Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--text);
+  background: linear-gradient(160deg, var(--bg-grad-from) 0%, var(--bg-grad-to) 100%);
+  background-attachment: fixed;
+  min-height: 100svh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent-bg);
+  color: var(--text-h);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
