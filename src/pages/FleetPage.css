@@ -13,12 +13,13 @@
 @media (max-width: 780px) {
   .fleet-stat-row {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .fleet-stat-row {
-    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
 
@@ -29,13 +30,19 @@
   padding: 18px 20px;
 }
 
+@media (max-width: 480px) {
+  .fleet-stat {
+    padding: 14px 16px;
+  }
+}
+
 .fleet-stat-label {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-soft);
 }
 
 .fleet-stat strong {
-  font-size: 24px;
+  font-size: 20px;
   color: var(--text-h);
 }
 
@@ -58,33 +65,53 @@
 .fleet-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  padding: 0;
+  overflow: hidden;
 }
 
-.fleet-card-top {
+.fleet-card-media {
+  position: relative;
+  height: 128px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--surface-dark) 0%, var(--surface-dark-2) 100%);
+  overflow: hidden;
 }
 
-.fleet-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: var(--accent-bg);
-  color: var(--accent-strong);
+.fleet-media-glow {
+  position: absolute;
+  inset: -40% -30% auto auto;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(201, 162, 75, 0.35) 0%, transparent 70%);
+}
+
+.fleet-media-icon {
+  position: relative;
+  color: var(--accent);
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+.fleet-media-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.fleet-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
 }
 
 .fleet-card h3 {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .fleet-category {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-soft);
 }
 
@@ -92,7 +119,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-soft);
   margin-top: 6px;
 }
@@ -117,11 +144,11 @@
 }
 
 .fleet-rate strong {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text-h);
 }
 
 .fleet-rate span {
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--text-soft);
 }

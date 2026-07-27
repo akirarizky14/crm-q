@@ -21,8 +21,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 13.5px;
   color: var(--text-h);
   flex-shrink: 0;
 }
@@ -45,8 +45,8 @@
 }
 
 .landing-nav-links a {
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text);
   text-decoration: none;
 }
@@ -58,6 +58,22 @@
   .landing-nav-links {
     display: none;
   }
+
+  .landing-nav-cta {
+    padding: 7px 14px;
+    font-size: 10.5px;
+  }
+
+  .landing-btn-primary,
+  .landing-btn-ghost {
+    padding: 10px 16px;
+    font-size: 11px;
+  }
+
+  .landing-package-cta {
+    padding: 9px 14px;
+    font-size: 11px;
+  }
 }
 
 .landing-nav-cta {
@@ -66,8 +82,8 @@
   border-radius: var(--radius-pill);
   background: var(--accent);
   color: #1a1712;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -104,12 +120,12 @@
   border-radius: var(--radius-pill);
   background: rgba(201, 162, 75, 0.16);
   color: var(--accent);
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .landing-hero-content h1 {
-  font-size: clamp(30px, 4.5vw, 44px);
+  font-size: clamp(25px, 3.6vw, 44px);
   line-height: 116%;
   letter-spacing: -0.6px;
   color: var(--text-on-dark);
@@ -117,7 +133,7 @@
 
 .landing-hero-content p {
   color: var(--text-on-dark-soft);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 160%;
 }
 
@@ -136,8 +152,8 @@
   border-radius: var(--radius-pill);
   background: var(--accent);
   color: #1a1712;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 12.5px;
   text-decoration: none;
 }
 
@@ -148,8 +164,8 @@
   border-radius: var(--radius-pill);
   border: 1px solid rgba(255, 255, 255, 0.25);
   color: var(--text-on-dark);
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 12.5px;
   text-decoration: none;
 }
 
@@ -169,12 +185,12 @@
 
 .landing-hero-stats strong {
   display: block;
-  font-size: 18px;
+  font-size: 15.5px;
   color: var(--text-on-dark);
 }
 
 .landing-hero-stats span {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-on-dark-soft);
 }
 
@@ -194,20 +210,20 @@
 
 .landing-eyebrow {
   color: var(--accent-strong);
-  font-weight: 700;
-  font-size: 12.5px;
+  font-weight: 600;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 
 .landing-section-head h2 {
-  font-size: clamp(22px, 3vw, 30px);
+  font-size: clamp(19px, 2.4vw, 25px);
   letter-spacing: -0.3px;
 }
 
 .landing-section-head p {
   color: var(--text-soft);
-  font-size: 14.5px;
+  font-size: 13px;
 }
 
 .landing-packages {
@@ -241,24 +257,24 @@
   left: 24px;
   background: var(--accent);
   color: #1a1712;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
   padding: 4px 12px;
   border-radius: var(--radius-pill);
 }
 
 .landing-package-card h3 {
-  font-size: 18px;
+  font-size: 15.5px;
   margin-top: 6px;
 }
 
 .landing-package-audience {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-soft);
 }
 
 .landing-package-price {
-  font-size: 17px;
+  font-size: 15px;
   color: var(--accent-strong);
   margin: 10px 0 6px;
 }
@@ -276,7 +292,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--text);
 }
 
@@ -293,8 +309,8 @@
   border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   color: var(--text-h);
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 600;
+  font-size: 11.5px;
   text-decoration: none;
 }
 .landing-package-cta:hover {
@@ -334,22 +350,22 @@
 }
 
 .landing-fleet-card h3 {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .landing-fleet-category {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-soft);
   margin-bottom: 8px;
 }
 
 .landing-fleet-card strong {
-  font-size: 17px;
+  font-size: 15px;
   color: var(--text-h);
 }
 
 .landing-fleet-sub {
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--text-soft);
 }
 
@@ -376,19 +392,19 @@
 }
 
 .landing-testimonial-card p {
-  font-size: 14.5px;
+  font-size: 13px;
   line-height: 160%;
   color: var(--text);
 }
 
 .landing-testimonial-author strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 12px;
   color: var(--text-h);
 }
 
 .landing-testimonial-author span {
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--text-soft);
 }
 
@@ -409,13 +425,13 @@
   gap: 8px;
   max-width: 300px;
   color: var(--text-on-dark);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 13.5px;
 }
 
 .landing-footer-brand p {
   font-weight: 400;
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--text-on-dark-soft);
 }
 
@@ -423,7 +439,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 13px;
+  font-size: 11.5px;
 }
 
 .landing-footer-contact div {

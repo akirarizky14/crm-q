@@ -32,8 +32,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 13.5px;
   color: var(--text-h);
   letter-spacing: 0.2px;
 }
@@ -50,14 +50,14 @@
 }
 
 .login-copy h1 {
-  font-size: 30px;
+  font-size: 25px;
   letter-spacing: -0.4px;
   margin-bottom: 10px;
 }
 
 .login-copy p {
   color: var(--text);
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 150%;
 }
 
@@ -72,14 +72,14 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--text-h);
 }
 
 .login-field input {
   font-family: inherit;
-  font-size: 14px;
+  font-size: 12.5px;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
@@ -96,13 +96,13 @@
 
 .login-error {
   color: var(--danger);
-  font-size: 13px;
+  font-size: 11.5px;
   margin: -4px 0 0;
 }
 
 .login-hint {
   text-align: center;
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-soft);
   margin-top: 4px;
 }
@@ -142,12 +142,12 @@
   border-radius: var(--radius-pill);
   background: rgba(201, 162, 75, 0.16);
   color: var(--accent);
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .login-showcase-content h2 {
-  font-size: 32px;
+  font-size: 26px;
   line-height: 122%;
   letter-spacing: -0.4px;
   color: var(--text-on-dark);
@@ -155,7 +155,7 @@
 
 .login-showcase-content p {
   color: var(--text-on-dark-soft);
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 155%;
 }
 
@@ -174,11 +174,11 @@
 
 .login-showcase-stats strong {
   display: block;
-  font-size: 18px;
+  font-size: 15.5px;
   color: var(--text-on-dark);
 }
 
 .login-showcase-stats span {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--text-on-dark-soft);
 }

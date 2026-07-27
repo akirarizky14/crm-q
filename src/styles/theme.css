@@ -62,7 +62,7 @@ h2,
 h3,
 h4 {
   font-family: var(--sans);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-h);
   margin: 0;
 }

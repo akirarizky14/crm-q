@@ -1,8 +1,9 @@
-import { Car, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { Card } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { vehicles, type VehicleStatus } from '../data/mock'
 import { formatRupiah } from '../lib/format'
+import { VEHICLE_CATEGORY_ICON } from '../lib/vehicleIcons'
 import './FleetPage.css'
 
 const STATUS_TONE: Record<VehicleStatus, 'success' | 'warning' | 'danger'> = {
@@ -42,29 +43,35 @@ export function FleetPage() {
       </section>
 
       <div className="fleet-grid">
-        {vehicles.map((v) => (
-          <Card key={v.id} className="fleet-card">
-            <div className="fleet-card-top">
-              <span className="fleet-icon">
-                <Car size={20} />
-              </span>
-              <Badge tone={STATUS_TONE[v.status]}>{v.status}</Badge>
-            </div>
-            <h3>{v.name}</h3>
-            <span className="fleet-category">{v.category}</span>
-            <div className="fleet-meta">
-              <span>{v.plate}</span>
-              <span className="fleet-meta-sep">•</span>
-              <span>
-                <Users size={12} /> {v.seats} kursi
-              </span>
-            </div>
-            <div className="fleet-rate">
-              <strong>{formatRupiah(v.monthlyRate)}</strong>
-              <span>/bulan</span>
-            </div>
-          </Card>
-        ))}
+        {vehicles.map((v) => {
+          const Icon = VEHICLE_CATEGORY_ICON[v.category]
+          return (
+            <Card key={v.id} className="fleet-card">
+              <div className="fleet-card-media">
+                <span className="fleet-media-glow" />
+                <Icon size={64} className="fleet-media-icon" />
+                <span className="fleet-media-badge">
+                  <Badge tone={STATUS_TONE[v.status]}>{v.status}</Badge>
+                </span>
+              </div>
+              <div className="fleet-card-body">
+                <h3>{v.name}</h3>
+                <span className="fleet-category">{v.category}</span>
+                <div className="fleet-meta">
+                  <span>{v.plate}</span>
+                  <span className="fleet-meta-sep">•</span>
+                  <span>
+                    <Users size={12} /> {v.seats} kursi
+                  </span>
+                </div>
+                <div className="fleet-rate">
+                  <strong>{formatRupiah(v.monthlyRate)}</strong>
+                  <span>/bulan</span>
+                </div>
+              </div>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )
