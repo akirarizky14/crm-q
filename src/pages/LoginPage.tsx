@@ -3,30 +3,39 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Crown, Car, ShieldCheck, Sparkles } from 'lucide-react'
 import { useAuth } from '../lib/authContext'
 import { Button } from '../components/ui/Button'
+import { ApiError } from '../api/client'
 import './LoginPage.css'
 
 export function LoginPage() {
   const { session, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('akira@crowncarrental.com')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   if (session) {
     const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/dashboard'
     return <Navigate to={from} replace />
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!email.trim() || !password.trim()) {
       setError('Email dan password wajib diisi.')
       return
     }
     setError('')
-    login(email.trim())
-    navigate('/dashboard', { replace: true })
+    setLoading(true)
+    try {
+      await login(email.trim(), password)
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal masuk, coba lagi.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -68,13 +77,9 @@ export function LoginPage() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <Button type="submit" style={{ width: '100%', padding: '13px 20px' }}>
-            Masuk ke Dashboard
+          <Button type="submit" disabled={loading} style={{ width: '100%', padding: '13px 20px' }}>
+            {loading ? 'Memproses...' : 'Masuk ke Dashboard'}
           </Button>
-
-          <p className="login-hint">
-            Demo: isi email &amp; password apa saja untuk masuk — tidak terhubung ke server.
-          </p>
         </form>
       </div>
 

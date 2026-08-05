@@ -12,31 +12,15 @@ import {
 } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { Plus, Upload, Download, Pencil, ChevronDown } from 'lucide-react'
-import { taskColumns, initialTasks, type KanbanTask, type TaskStatus } from '../data/mock'
-import { TEMPERATURE_META, LEAD_CSV_HEADERS, leadToCsvRow, generateLeadId } from '../lib/leads'
+import { taskColumns, type KanbanTask, type TaskStatus } from '../data/mock'
+import { TEMPERATURE_META, LEAD_CSV_HEADERS, leadToCsvRow } from '../lib/leads'
+import { fetchLeads, createLead, updateLead, deleteLead } from '../api/leads'
 import { toCsv, downloadCsv } from '../lib/csv'
 import { formatRupiah } from '../lib/format'
 import { Button } from '../components/ui/Button'
 import { LeadFormModal } from '../components/tasks/LeadFormModal'
 import { ImportDialog } from '../components/tasks/ImportDialog'
 import './TasksPage.css'
-
-const STORAGE_KEY = 'crown-crm-tasks'
-
-function loadTasks(): KanbanTask[] {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return initialTasks
-  try {
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : initialTasks
-  } catch {
-    return initialTasks
-  }
-}
-
-function saveTasks(tasks: KanbanTask[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
-}
 
 function formatDateShort(iso: string): string {
   const d = new Date(iso)
@@ -136,7 +120,9 @@ function Column({
 }
 
 export function TasksPage() {
-  const [tasks, setTasks] = useState<KanbanTask[]>(loadTasks)
+  const [tasks, setTasks] = useState<KanbanTask[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [activeId, setActiveId] = useState<string | null>(null)
   const [formTarget, setFormTarget] = useState<KanbanTask | null | undefined>(undefined)
   const [showImport, setShowImport] = useState(false)
@@ -145,6 +131,13 @@ export function TasksPage() {
   const [customTo, setCustomTo] = useState('')
   const exportMenuRef = useRef<HTMLDivElement>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+
+  useEffect(() => {
+    fetchLeads()
+      .then(setTasks)
+      .catch(() => setError('Gagal memuat data lead dari server.'))
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
     if (!showExportMenu) return
@@ -157,11 +150,6 @@ export function TasksPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showExportMenu])
 
-  function updateTasks(next: KanbanTask[]) {
-    setTasks(next)
-    saveTasks(next)
-  }
-
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string)
   }
@@ -171,25 +159,40 @@ export function TasksPage() {
     setActiveId(null)
     if (!over) return
     const newStatus = over.id as TaskStatus
-    updateTasks(tasks.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t)))
+    const previous = tasks
+    setTasks(tasks.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t)))
+    updateLead(active.id as string, { status: newStatus }).catch(() => {
+      setTasks(previous)
+      setError('Gagal menyimpan perubahan status.')
+    })
   }
 
   function handleSaveLead(task: KanbanTask) {
     if (task.id) {
-      updateTasks(tasks.map((t) => (t.id === task.id ? task : t)))
+      updateLead(task.id, task)
+        .then((saved) => setTasks(tasks.map((t) => (t.id === saved.id ? saved : t))))
+        .catch(() => setError('Gagal menyimpan perubahan lead.'))
     } else {
-      updateTasks([...tasks, { ...task, id: generateLeadId() }])
+      const { id: _unusedId, ...payload } = task
+      createLead(payload)
+        .then((created) => setTasks([created, ...tasks]))
+        .catch(() => setError('Gagal menambahkan lead baru.'))
     }
     setFormTarget(undefined)
   }
 
   function handleDeleteLead(id: string) {
-    updateTasks(tasks.filter((t) => t.id !== id))
+    deleteLead(id)
+      .then(() => setTasks(tasks.filter((t) => t.id !== id)))
+      .catch(() => setError('Gagal menghapus lead.'))
     setFormTarget(undefined)
   }
 
   function handleImport(imported: KanbanTask[]) {
-    if (imported.length > 0) updateTasks([...tasks, ...imported])
+    if (imported.length === 0) return
+    Promise.all(imported.map(({ id: _unusedId, ...payload }) => createLead(payload)))
+      .then((created) => setTasks([...created, ...tasks]))
+      .catch(() => setError('Gagal mengimpor sebagian atau semua lead.'))
   }
 
   function exportRange(from: string, to: string) {
@@ -209,6 +212,8 @@ export function TasksPage() {
 
   return (
     <div className="tasks-page">
+      {loading && <p className="kanban-empty">Memuat data lead...</p>}
+      {error && <p className="login-error">{error}</p>}
       <div className="tasks-toolbar">
         <Button type="button" onClick={() => setFormTarget(null)}>
           <Plus size={15} /> Tambah Lead

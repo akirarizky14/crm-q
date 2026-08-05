@@ -2,11 +2,12 @@ import { createContext, useContext } from 'react'
 
 export interface Session {
   email: string
+  name: string
 }
 
 export interface AuthContextValue {
   session: Session | null
-  login: (email: string) => void
+  login: (email: string, password: string) => Promise<void>
   logout: () => void
 }
 
