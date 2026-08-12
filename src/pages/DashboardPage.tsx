@@ -1,28 +1,42 @@
+import { useEffect, useState } from 'react'
 import { ArrowUpRight, MoreHorizontal, Phone, Mail, Calendar, Link as LinkIcon, Plus, Pencil } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { IconButton } from '../components/ui/IconButton'
 import { Avatar, AvatarStack } from '../components/ui/Avatar'
-import {
-  dashboardStats,
-  interactionHistory,
-  funnelStages,
-  funnelTotal,
-  calendarMonth,
-  calendarTasks,
-  primaryContact,
-} from '../data/mock'
+import { fetchDashboardSummary, type DashboardSummary } from '../api/dashboard'
 import './DashboardPage.css'
 
 export function DashboardPage() {
+  const [data, setData] = useState<DashboardSummary | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetchDashboardSummary()
+      .then(setData)
+      .catch(() => setError('Gagal memuat data dashboard dari server.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return <p className="kanban-empty">Memuat dashboard...</p>
+  }
+
+  if (error || !data) {
+    return <p className="login-error">{error || 'Gagal memuat data dashboard.'}</p>
+  }
+
+  const { stats, interactionHistory, funnelStages, funnelTotal, calendarMonth, calendarTasks, primaryContact } = data
+
   return (
     <div className="dashboard">
       <section className="stat-row">
-        {dashboardStats.map((s) => (
+        {stats.map((s) => (
           <Card key={s.label} className="stat-card">
             <div className="stat-value">{s.value}</div>
             <div className="stat-sub">
-              <span className="stat-delta">{s.delta}</span>
+              {s.delta && <span className="stat-delta">{s.delta}</span>}
               {s.sub}
             </div>
           </Card>
@@ -62,6 +76,7 @@ export function DashboardPage() {
                   </div>
                 </div>
               ))}
+              {interactionHistory.length === 0 && <p className="kanban-empty">Belum ada riwayat kontrak.</p>}
             </div>
           </Card>
 
@@ -115,66 +130,74 @@ export function DashboardPage() {
         </div>
 
         <div className="dashboard-side">
-          <Card variant="dark" className="contact-card">
-            <div className="section-head-actions contact-card-actions">
-              <IconButton tone="dark" title="Telepon">
-                <Phone size={15} />
-              </IconButton>
-              <IconButton tone="dark" title="Tambah">
-                <Plus size={15} />
-              </IconButton>
-            </div>
-            <Avatar label={primaryContact.initials} size={64} />
-            <h3>
-              {primaryContact.firstName} {primaryContact.lastName}
-            </h3>
-            <p className="contact-role">
-              {primaryContact.role} — {primaryContact.company}
-            </p>
-          </Card>
+          {primaryContact ? (
+            <>
+              <Card variant="dark" className="contact-card">
+                <div className="section-head-actions contact-card-actions">
+                  <IconButton tone="dark" title="Telepon">
+                    <Phone size={15} />
+                  </IconButton>
+                  <IconButton tone="dark" title="Tambah">
+                    <Plus size={15} />
+                  </IconButton>
+                </div>
+                <Avatar label={primaryContact.initials} size={64} />
+                <h3>
+                  {primaryContact.firstName} {primaryContact.lastName}
+                </h3>
+                <p className="contact-role">
+                  {primaryContact.role} — {primaryContact.company}
+                </p>
+              </Card>
 
-          <Card className="section-card detail-card">
-            <div className="section-head">
-              <h3>Detail Informasi</h3>
-              <IconButton title="Edit">
-                <Pencil size={15} />
-              </IconButton>
-            </div>
-            <dl className="detail-list">
-              <div className="detail-row">
-                <dt>Nama Depan</dt>
-                <dd>{primaryContact.firstName}</dd>
-              </div>
-              <div className="detail-row">
-                <dt>Nama Belakang</dt>
-                <dd>{primaryContact.lastName}</dd>
-              </div>
-              <div className="detail-row">
-                <dt>
-                  <Mail size={13} /> Email
-                </dt>
-                <dd>{primaryContact.email}</dd>
-              </div>
-              <div className="detail-row">
-                <dt>
-                  <Phone size={13} /> No. Telepon
-                </dt>
-                <dd>{primaryContact.phone}</dd>
-              </div>
-              <div className="detail-row">
-                <dt>
-                  <LinkIcon size={13} /> Perusahaan
-                </dt>
-                <dd>{primaryContact.company}</dd>
-              </div>
-              <div className="detail-row">
-                <dt>
-                  <Calendar size={13} /> Terakhir Dihubungi
-                </dt>
-                <dd>{primaryContact.lastContacted}</dd>
-              </div>
-            </dl>
-          </Card>
+              <Card className="section-card detail-card">
+                <div className="section-head">
+                  <h3>Detail Informasi</h3>
+                  <IconButton title="Edit">
+                    <Pencil size={15} />
+                  </IconButton>
+                </div>
+                <dl className="detail-list">
+                  <div className="detail-row">
+                    <dt>Nama Depan</dt>
+                    <dd>{primaryContact.firstName}</dd>
+                  </div>
+                  <div className="detail-row">
+                    <dt>Nama Belakang</dt>
+                    <dd>{primaryContact.lastName}</dd>
+                  </div>
+                  <div className="detail-row">
+                    <dt>
+                      <Mail size={13} /> Email
+                    </dt>
+                    <dd>{primaryContact.email}</dd>
+                  </div>
+                  <div className="detail-row">
+                    <dt>
+                      <Phone size={13} /> No. Telepon
+                    </dt>
+                    <dd>{primaryContact.phone}</dd>
+                  </div>
+                  <div className="detail-row">
+                    <dt>
+                      <LinkIcon size={13} /> Perusahaan
+                    </dt>
+                    <dd>{primaryContact.company}</dd>
+                  </div>
+                  <div className="detail-row">
+                    <dt>
+                      <Calendar size={13} /> Terakhir Dihubungi
+                    </dt>
+                    <dd>{primaryContact.lastContacted}</dd>
+                  </div>
+                </dl>
+              </Card>
+            </>
+          ) : (
+            <Card className="section-card">
+              <p className="kanban-empty">Belum ada kontak tersimpan.</p>
+            </Card>
+          )}
         </div>
       </div>
     </div>

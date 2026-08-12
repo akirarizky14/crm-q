@@ -10,30 +10,12 @@ export interface Contact {
   initials: string
 }
 
-export const primaryContact: Contact = {
-  id: 'c-1',
-  firstName: 'Amanda',
-  lastName: 'Wijaya',
-  company: 'PT Wijaya Group',
-  role: 'Calon Pengantin & Wedding Organizer',
-  email: 'amanda.wijaya@wijayagroup.co.id',
-  phone: '+62 812 3456 7890',
-  lastContacted: '24/07/2026 pukul 14.10',
-  initials: 'AW',
-}
-
 export interface StatSummary {
   label: string
   value: string
   delta: string
   sub: string
 }
-
-export const dashboardStats: StatSummary[] = [
-  { label: 'revenue', value: 'Rp 1.245.000.000', delta: '+9% minggu ini', sub: 'Dari 42 Kontrak Aktif' },
-  { label: 'customers', value: '+58', delta: '+7 hari ini', sub: 'Customer Baru Minggu Ini' },
-  { label: 'tasks', value: '+24', delta: '+4 hari ini', sub: 'Task Baru Minggu Ini' },
-]
 
 export interface InteractionItem {
   id: string
@@ -45,101 +27,39 @@ export interface InteractionItem {
   people: number
 }
 
-export const interactionHistory: InteractionItem[] = [
-  {
-    id: 'i-1',
-    date: '4 Jul',
-    title: 'Wedding Package',
-    subtitle: 'Alphard + Dekorasi',
-    amount: 'Rp 45.000.000',
-    variant: 'dark',
-    people: 3,
-  },
-  {
-    id: 'i-2',
-    date: '16 Jul',
-    title: 'Kontrak Korporat',
-    subtitle: 'Sewa Bulanan 3 Van',
-    amount: 'Rp 78.000.000',
-    variant: 'accent',
-    people: 4,
-  },
-  {
-    id: 'i-3',
-    date: '12 Jul',
-    title: 'Perpanjangan Kontrak',
-    subtitle: 'Fortuner Sewa Bulanan',
-    amount: 'Rp 22.500.000',
-    variant: 'light',
-    people: 2,
-  },
-  {
-    id: 'i-4',
-    date: '11 Jul',
-    title: 'Wedding Package',
-    subtitle: 'Bus Pengantin + Alphard',
-    amount: 'Rp 38.000.000',
-    variant: 'dark',
-    people: 3,
-  },
-  {
-    id: 'i-5',
-    date: '2 Jul',
-    title: 'Survey Armada',
-    subtitle: 'Untuk Acara Korporat',
-    amount: 'Rp 15.750.000',
-    variant: 'light',
-    people: 2,
-  },
-  {
-    id: 'i-6',
-    date: '2 Jul',
-    title: 'Kontrak Kedua',
-    subtitle: 'Layanan Bulanan Reguler',
-    amount: 'Rp 31.200.000',
-    variant: 'light',
-    people: 3,
-  },
-]
-
 export interface FunnelStage {
   label: string
   amount: string
   ratio: number
 }
 
-export const funnelTotal = 'Rp 350.500.000'
-
-export const funnelStages: FunnelStage[] = [
-  { label: 'Inquiry', amount: 'Rp 92.350.000', ratio: 1 },
-  { label: 'Survey Mobil', amount: 'Rp 67.120.000', ratio: 0.73 },
-  { label: 'Negosiasi Harga', amount: 'Rp 51.980.000', ratio: 0.56 },
-  { label: 'Kontrak Ditandatangani', amount: 'Rp 28.980.000', ratio: 0.31 },
-]
-
-export type VehicleCategory = 'Wedding Car' | 'Van Korporat' | 'Bus Korporat'
-export type VehicleStatus = 'Tersedia' | 'Disewa' | 'Maintenance'
+export type VehicleCategory = 'City Car' | 'Wedding' | 'Corporate' | 'Electric Car'
+export type VehicleStatus = 'Tersedia' | 'Disewa' | 'Maintenance' | 'Terjual'
 
 export interface Vehicle {
   id: string
   name: string
   category: VehicleCategory
+  year: number
   plate: string
   monthlyRate: number
   status: VehicleStatus
   seats: number
+  image?: string
+  createdAt: string
 }
 
-export const vehicles: Vehicle[] = [
-  { id: 'v-1', name: 'Toyota Alphard 2024', category: 'Wedding Car', plate: 'B 1 CRW', monthlyRate: 45_000_000, status: 'Disewa', seats: 6 },
-  { id: 'v-2', name: 'Mercedes S-Class', category: 'Wedding Car', plate: 'B 2 CRW', monthlyRate: 68_000_000, status: 'Tersedia', seats: 4 },
-  { id: 'v-3', name: 'Toyota Fortuner', category: 'Wedding Car', plate: 'B 3 CRW', monthlyRate: 22_500_000, status: 'Disewa', seats: 6 },
-  { id: 'v-4', name: 'Hiace Premio', category: 'Van Korporat', plate: 'B 4 CRW', monthlyRate: 18_000_000, status: 'Tersedia', seats: 14 },
-  { id: 'v-5', name: 'Hiace Premio', category: 'Van Korporat', plate: 'B 5 CRW', monthlyRate: 18_000_000, status: 'Maintenance', seats: 14 },
-  { id: 'v-6', name: 'Bus Pariwisata Medium', category: 'Bus Korporat', plate: 'B 6 CRW', monthlyRate: 52_000_000, status: 'Tersedia', seats: 31 },
-  { id: 'v-7', name: 'Bus Pengantin Deluxe', category: 'Wedding Car', plate: 'B 7 CRW', monthlyRate: 60_000_000, status: 'Disewa', seats: 35 },
-  { id: 'v-8', name: 'Innova Zenix', category: 'Van Korporat', plate: 'B 8 CRW', monthlyRate: 14_500_000, status: 'Tersedia', seats: 7 },
-]
+export type VehicleEventType = 'procurement' | 'service' | 'expense' | 'sale'
+
+export interface VehicleEvent {
+  id: string
+  vehicleId: string
+  type: VehicleEventType
+  date: string
+  amount: number
+  description: string
+  createdAt: string
+}
 
 export type TaskStatus = 'inquiry' | 'survey' | 'kontrak' | 'berjalan' | 'selesai'
 
@@ -210,12 +130,13 @@ export interface CalendarTask {
   variant: 'dark' | 'accent' | 'light' | 'none'
 }
 
-export const calendarMonth = 'Agustus 2026'
-export const calendarTasks: CalendarTask[] = [
-  { day: 2, variant: 'accent' },
-  { day: 5, variant: 'light' },
-  { day: 8, variant: 'light' },
-  { day: 10, variant: 'dark' },
-  { day: 14, variant: 'accent' },
-  { day: 20, variant: 'dark' },
-]
+export interface BlogPost {
+  slug: string
+  category: string
+  title: string
+  excerpt?: string
+  content: string[]
+  author: string
+  date: string
+  image?: string
+}

@@ -4,6 +4,12 @@
   gap: 20px;
 }
 
+.fleet-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .fleet-stat-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -69,6 +75,36 @@
   overflow: hidden;
 }
 
+.fleet-card-clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.fleet-card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.fleet-edit-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text-on-dark);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.fleet-edit-btn:hover {
+  background: var(--accent);
+  color: #1a1712;
+}
+
 .fleet-card-media {
   position: relative;
   height: 128px;
@@ -91,6 +127,12 @@
   position: relative;
   color: var(--accent);
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+.fleet-media-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .fleet-media-badge {

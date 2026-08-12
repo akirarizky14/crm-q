@@ -11,14 +11,25 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   '/fleet': { title: 'Armada Mobil', subtitle: 'Inventaris kendaraan wedding & korporat' },
   '/tasks': { title: 'Task Board', subtitle: 'Pipeline booking dari inquiry sampai selesai' },
   '/affiliate': { title: 'Affiliate Program', subtitle: 'Mitra referral & komisi bulanan' },
-  '/cms/landing': { title: 'Landing Page', subtitle: 'Kelola konten halaman publik' },
+  '/blog': { title: 'Blog & Artikel', subtitle: 'Konten blog untuk situs publik' },
+}
+
+const TITLE_PREFIXES: [string, { title: string; subtitle: string }][] = [
+  ['/fleet/', { title: 'Detail Armada', subtitle: 'Riwayat pembelian, servis, dan penyewaan' }],
+  ['/blog/', { title: 'Artikel Blog', subtitle: 'Tulis atau edit konten blog' }],
+]
+
+function resolveTitle(pathname: string) {
+  if (TITLES[pathname]) return TITLES[pathname]
+  const match = TITLE_PREFIXES.find(([prefix]) => pathname.startsWith(prefix))
+  return match?.[1] ?? { title: 'Crown Car Rental', subtitle: '' }
 }
 
 export function Topbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { session, logout } = useAuth()
-  const meta = TITLES[location.pathname] ?? { title: 'Crown Car Rental', subtitle: '' }
+  const meta = resolveTitle(location.pathname)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
