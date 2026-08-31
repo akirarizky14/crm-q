@@ -9,6 +9,7 @@ import { TasksPage } from './pages/TasksPage'
 import { AffiliatePage } from './pages/AffiliatePage'
 import { BlogPage } from './pages/BlogPage'
 import { BlogFormPage } from './pages/BlogFormPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/new" element={<BlogFormPage />} />
             <Route path="/blog/:slug" element={<BlogFormPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react'
-import { Trash2 } from 'lucide-react'
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { Trash2, Upload } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import type { Vehicle, VehicleCategory, VehicleStatus } from '../../data/mock'
+import { uploadImage } from '../../api/uploads'
 import './fleet-forms.css'
 
 const CATEGORIES: VehicleCategory[] = ['City Car', 'Wedding', 'Corporate', 'Electric Car']
@@ -31,11 +32,36 @@ function emptyForm(): Omit<Vehicle, 'id' | 'createdAt'> {
 export function VehicleFormModal({ vehicle, onClose, onSave, onDelete }: VehicleFormModalProps) {
   const [form, setForm] = useState<Omit<Vehicle, 'id' | 'createdAt'>>(vehicle ? { ...vehicle } : emptyForm())
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!form.name.trim() || !form.plate.trim()) return
     onSave({ id: vehicle?.id ?? '', ...form })
+  }
+
+  function handlePhotoChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('File harus berupa gambar')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError('Ukuran gambar maksimal 2MB')
+      return
+    }
+
+    setPhotoError('')
+    setUploading(true)
+    uploadImage(file)
+      .then(({ url }) => setForm((f) => ({ ...f, image: url })))
+      .catch(() => setPhotoError('Gagal mengunggah foto'))
+      .finally(() => setUploading(false))
   }
 
   return (
@@ -119,12 +145,33 @@ export function VehicleFormModal({ vehicle, onClose, onSave, onDelete }: Vehicle
         </div>
 
         <label className="vehicle-field">
-          <span>URL Foto (opsional)</span>
-          <input
-            value={form.image ?? ''}
-            onChange={(e) => setForm({ ...form, image: e.target.value })}
-            placeholder="https://..."
-          />
+          <span>Foto (opsional)</span>
+          <div className="vehicle-photo-field">
+            {form.image && <img src={form.image} alt="Preview" className="vehicle-photo-preview" />}
+            <div className="vehicle-photo-actions">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                hidden
+              />
+              <button
+                type="button"
+                className="vehicle-photo-upload-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload size={14} /> {uploading ? 'Mengunggah...' : form.image ? 'Ganti Foto' : 'Unggah Foto'}
+              </button>
+              {form.image && (
+                <button type="button" className="vehicle-photo-remove-btn" onClick={() => setForm({ ...form, image: '' })}>
+                  Hapus Foto
+                </button>
+              )}
+            </div>
+            {photoError && <span className="vehicle-photo-error">{photoError}</span>}
+          </div>
         </label>
 
         <div className="vehicle-form-actions">

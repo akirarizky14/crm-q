@@ -67,3 +67,59 @@
 .vehicle-delete-btn:hover {
   text-decoration: underline;
 }
+
+.vehicle-photo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vehicle-photo-preview {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.vehicle-photo-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vehicle-photo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-grad-from);
+  color: var(--text-h);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.vehicle-photo-upload-btn:hover {
+  border-color: var(--accent-border);
+}
+
+.vehicle-photo-remove-btn {
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px;
+}
+.vehicle-photo-remove-btn:hover {
+  text-decoration: underline;
+}
+
+.vehicle-photo-error {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--danger);
+}

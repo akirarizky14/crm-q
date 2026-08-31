@@ -9,9 +9,10 @@ import './layout.css'
 const TITLES: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': { title: 'Customer Information', subtitle: 'Ringkasan kontrak, pipeline, dan pelanggan' },
   '/fleet': { title: 'Armada Mobil', subtitle: 'Inventaris kendaraan wedding & korporat' },
-  '/tasks': { title: 'Task Board', subtitle: 'Pipeline booking dari inquiry sampai selesai' },
+  '/tasks': { title: 'CRM Board', subtitle: 'Pipeline booking dari inquiry sampai selesai' },
   '/affiliate': { title: 'Affiliate Program', subtitle: 'Mitra referral & komisi bulanan' },
   '/blog': { title: 'Blog & Artikel', subtitle: 'Konten blog untuk situs publik' },
+  '/settings': { title: 'Pengaturan Website', subtitle: 'Foto hero dan info kontak di crowncar.id' },
 }
 
 const TITLE_PREFIXES: [string, { title: string; subtitle: string }][] = [
