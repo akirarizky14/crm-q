@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Mail, LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../lib/authContext'
 import { Avatar } from '../ui/Avatar'
-import { IconButton } from '../ui/IconButton'
 import './layout.css'
 
 const TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -59,12 +58,6 @@ export function Topbar() {
       </div>
 
       <div className="topbar-actions">
-        <IconButton title="Notifikasi">
-          <Bell size={17} />
-        </IconButton>
-        <IconButton title="Pesan">
-          <Mail size={17} />
-        </IconButton>
         <div className="topbar-profile-wrap" ref={menuRef}>
           <button type="button" className="topbar-profile" onClick={() => setMenuOpen((v) => !v)}>
             <Avatar label={session?.email ?? 'CC'} size={36} />

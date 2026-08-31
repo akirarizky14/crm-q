@@ -11,7 +11,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, Upload, Download, Pencil, ChevronDown } from 'lucide-react'
+import { Plus, Upload, Download, Pencil, ChevronDown, Search } from 'lucide-react'
 import { taskColumns, type KanbanTask, type TaskStatus } from '../data/mock'
 import { TEMPERATURE_META, LEAD_CSV_HEADERS, leadToCsvRow } from '../lib/leads'
 import { fetchLeads, createLead, updateLead, deleteLead } from '../api/leads'
@@ -127,6 +127,7 @@ export function TasksPage() {
   const [formTarget, setFormTarget] = useState<KanbanTask | null | undefined>(undefined)
   const [showImport, setShowImport] = useState(false)
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [search, setSearch] = useState('')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
   const exportMenuRef = useRef<HTMLDivElement>(null)
@@ -209,6 +210,12 @@ export function TasksPage() {
   }
 
   const activeTask = tasks.find((t) => t.id === activeId)
+  const query = search.trim().toLowerCase()
+  const filteredTasks = query
+    ? tasks.filter((t) =>
+        [t.title, t.customer, t.vehicle].some((field) => field.toLowerCase().includes(query))
+      )
+    : tasks
 
   return (
     <div className="tasks-page">
@@ -263,6 +270,15 @@ export function TasksPage() {
             </div>
           )}
         </div>
+        <div className="tasks-search">
+          <Search size={14} />
+          <input
+            type="text"
+            placeholder="Cari lead, customer, atau kendaraan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -272,7 +288,7 @@ export function TasksPage() {
               key={col.id}
               id={col.id}
               title={col.title}
-              tasks={tasks.filter((t) => t.status === col.id)}
+              tasks={filteredTasks.filter((t) => t.status === col.id)}
               onEdit={(task) => setFormTarget(task)}
             />
           ))}

@@ -18,6 +18,11 @@ export interface SiteSettings {
   footerInstagram?: string
   footerMapsUrl?: string
   footerCopyright?: string
+  clientsLogos?: { id: string; imageUrl: string; alt: string }[]
+  exploreCards?: { category: string; name: string; imageUrl: string }[]
+  steps?: { number: string; imageUrl: string; desc: string; note?: string }[]
+  testimonials?: { id: string; name: string; role: string; quote: string; initials: string }[]
+  whyUsCards?: { title: string; desc: string }[]
 }
 
 export function fetchSiteSettings() {

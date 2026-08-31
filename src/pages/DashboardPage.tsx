@@ -4,20 +4,45 @@ import { Link } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { IconButton } from '../components/ui/IconButton'
 import { Avatar, AvatarStack } from '../components/ui/Avatar'
+import { ContactFormModal } from '../components/dashboard/ContactFormModal'
 import { fetchDashboardSummary, type DashboardSummary } from '../api/dashboard'
+import { createContact, updateContact } from '../api/contacts'
+import type { Contact } from '../data/mock'
 import './DashboardPage.css'
+
+function waLink(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  const normalized = digits.startsWith('0') ? `62${digits.slice(1)}` : digits
+  return `https://wa.me/${normalized}`
+}
 
 export function DashboardPage() {
   const [data, setData] = useState<DashboardSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showContactModal, setShowContactModal] = useState<'edit' | 'add' | null>(null)
 
   useEffect(() => {
-    fetchDashboardSummary()
+    loadDashboard()
+  }, [])
+
+  function loadDashboard() {
+    setLoading(true)
+    return fetchDashboardSummary()
       .then(setData)
       .catch(() => setError('Gagal memuat data dashboard dari server.'))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  async function handleSaveContact(patch: Omit<Contact, 'id' | 'initials'>) {
+    if (showContactModal === 'edit' && data?.primaryContact) {
+      await updateContact(data.primaryContact.id, patch)
+    } else {
+      await createContact(patch)
+    }
+    setShowContactModal(null)
+    await loadDashboard()
+  }
 
   if (loading) {
     return <p className="kanban-empty">Memuat dashboard...</p>
@@ -103,7 +128,7 @@ export function DashboardPage() {
 
             <Card className="section-card">
               <div className="section-head">
-                <h3>Pipeline Kontrak</h3>
+                <h3>Pipeline</h3>
                 <IconButton title="Refresh">
                   <ArrowUpRight size={16} />
                 </IconButton>
@@ -134,10 +159,15 @@ export function DashboardPage() {
             <>
               <Card variant="dark" className="contact-card">
                 <div className="section-head-actions contact-card-actions">
-                  <IconButton tone="dark" title="Telepon">
+                  <IconButton
+                    tone="dark"
+                    title="Chat WhatsApp"
+                    disabled={!primaryContact.phone}
+                    onClick={() => window.open(waLink(primaryContact.phone), '_blank', 'noopener,noreferrer')}
+                  >
                     <Phone size={15} />
                   </IconButton>
-                  <IconButton tone="dark" title="Tambah">
+                  <IconButton tone="dark" title="Tambah Kontak" onClick={() => setShowContactModal('add')}>
                     <Plus size={15} />
                   </IconButton>
                 </div>
@@ -153,7 +183,7 @@ export function DashboardPage() {
               <Card className="section-card detail-card">
                 <div className="section-head">
                   <h3>Detail Informasi</h3>
-                  <IconButton title="Edit">
+                  <IconButton title="Edit" onClick={() => setShowContactModal('edit')}>
                     <Pencil size={15} />
                   </IconButton>
                 </div>
@@ -196,10 +226,21 @@ export function DashboardPage() {
           ) : (
             <Card className="section-card">
               <p className="kanban-empty">Belum ada kontak tersimpan.</p>
+              <IconButton title="Tambah Kontak" onClick={() => setShowContactModal('add')}>
+                <Plus size={15} />
+              </IconButton>
             </Card>
           )}
         </div>
       </div>
+
+      {showContactModal && (
+        <ContactFormModal
+          contact={showContactModal === 'edit' ? primaryContact : null}
+          onClose={() => setShowContactModal(null)}
+          onSave={handleSaveContact}
+        />
+      )}
     </div>
   )
 }

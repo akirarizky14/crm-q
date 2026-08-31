@@ -91,7 +91,7 @@ export function LoginPage() {
           </span>
           <h2>Sewa mobil bulanan untuk momen dan bisnis Anda.</h2>
           <p>
-            Kelola pipeline kontrak, jadwal armada, dan mitra afiliasi wedding organizer dalam satu
+            Kelola pipeline, jadwal armada, dan mitra afiliasi wedding organizer dalam satu
             dashboard elegan.
           </p>
           <div className="login-showcase-stats">
