@@ -27,6 +27,7 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: https://api.crowncar.id
+          VITE_CROWN_URL: https://crowncar.id
 
       # TODO: confirm this matches the actual nginx root for crm.crowncar.id
       # before relying on this step (see /var/www/crown/dist as the pattern
