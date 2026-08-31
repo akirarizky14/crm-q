@@ -18,12 +18,13 @@
 }
 
 .settings-hero-preview {
-  width: 220px;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: 16px;
+  width: 160px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg-grad-from);
+  padding: 8px;
 }
 
 .settings-file-input {
