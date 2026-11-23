@@ -28,6 +28,7 @@ import {
 import { taskColumns, type KanbanTask, type LeadTemperature, type TaskStatus } from '../data/mock'
 import { TEMPERATURE_META, TEMPERATURE_OPTIONS } from '../lib/leads'
 import { fetchLeads, fetchLeadsPage, createLead, updateLead, deleteLead } from '../api/leads'
+import { ApiError } from '../api/client'
 import { downloadLeadsWorkbook } from '../lib/leadsExcel'
 import { formatDateTime, formatRupiah, localDayStartIso, localNextDayStartIso } from '../lib/format'
 import { Button } from '../components/ui/Button'
@@ -497,19 +498,25 @@ export function TasksPage() {
       .finally(() => reload([from, to]))
   }
 
-  function handleSaveLead(task: KanbanTask) {
+  /** Closes the form only after the server accepted it; otherwise the form shows why. */
+  async function handleSaveLead(task: KanbanTask): Promise<void> {
     const previousStatus = formTarget?.status
-    if (task.id) {
-      updateLead(task.id, task)
-        .then(() => reload(previousStatus ? [previousStatus, task.status] : [task.status]))
-        .catch(() => setError('Gagal menyimpan perubahan lead.'))
-    } else {
-      const { id: _unusedId, ...payload } = task
-      createLead(payload)
-        .then((created) => reload([created.status]))
-        .catch(() => setError('Gagal menambahkan lead baru.'))
+    try {
+      if (task.id) {
+        await updateLead(task.id, task)
+        reload(previousStatus ? [previousStatus, task.status] : [task.status])
+      } else {
+        const { id: _unusedId, ...payload } = task
+        const created = await createLead(payload)
+        reload([created.status])
+      }
+      setFormTarget(undefined)
+    } catch (err) {
+      throw new Error(
+        err instanceof ApiError ? err.message : 'Tidak bisa terhubung ke server. Coba lagi sebentar lagi.',
+        { cause: err }
+      )
     }
-    setFormTarget(undefined)
   }
 
   function handleDeleteLead(id: string) {

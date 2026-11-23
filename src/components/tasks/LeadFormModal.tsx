@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
@@ -10,7 +10,8 @@ import './tasks-forms.css'
 interface LeadFormModalProps {
   task: KanbanTask | null
   onClose: () => void
-  onSave: (task: KanbanTask) => void
+  /** Resolves when saved; rejects with an Error whose message is shown in the form. */
+  onSave: (task: KanbanTask) => Promise<void>
   onDelete?: (id: string) => void
 }
 
@@ -31,60 +32,179 @@ function emptyForm(): Omit<KanbanTask, 'id'> {
   }
 }
 
-export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModalProps) {
-  const [form, setForm] = useState<Omit<KanbanTask, 'id'>>(task ? { ...task } : emptyForm())
-  const [confirmDelete, setConfirmDelete] = useState(false)
+type LeadForm = Omit<KanbanTask, 'id'>
+type CheckedField = 'title' | 'customer' | 'phone' | 'vehicle' | 'email'
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!form.title.trim() || !form.customer.trim()) return
-    onSave({ id: task?.id ?? '', ...form })
+// Same required fields as the backend, in form order (the first invalid one gets focus).
+const REQUIRED_FIELDS: { key: Exclude<CheckedField, 'email'>; label: string }[] = [
+  { key: 'title', label: 'Nama Deal' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'phone', label: 'No. Telepon' },
+  { key: 'vehicle', label: 'Mobil / Armada' },
+]
+const FIELD_ORDER: CheckedField[] = ['title', 'customer', 'phone', 'email', 'vehicle']
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function validate(form: LeadForm): Partial<Record<CheckedField, string>> {
+  const errors: Partial<Record<CheckedField, string>> = {}
+  for (const { key, label } of REQUIRED_FIELDS) {
+    if (!String(form[key] ?? '').trim()) errors[key] = `${label} wajib diisi`
   }
+  const email = (form.email ?? '').trim()
+  if (email && !EMAIL_RE.test(email)) errors.email = 'Format email tidak valid (contoh: nama@email.com)'
+  return errors
+}
+
+function RequiredMark() {
+  return (
+    <b className="lead-field-required" aria-hidden="true">
+      *
+    </b>
+  )
+}
+
+export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModalProps) {
+  const [form, setForm] = useState<LeadForm>(task ? { ...task } : emptyForm())
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  // Errors appear only after pressing save; afterwards each one clears as soon as it's fixed.
+  const [errors, setErrors] = useState<Partial<Record<CheckedField, string>>>({})
+  const [submitError, setSubmitError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  function update(patch: Partial<LeadForm>) {
+    const next = { ...form, ...patch }
+    setForm(next)
+    if (Object.keys(errors).length > 0) {
+      const stillInvalid = validate(next)
+      setErrors((prev) => {
+        const kept: Partial<Record<CheckedField, string>> = {}
+        for (const key of Object.keys(prev) as CheckedField[]) {
+          if (stillInvalid[key]) kept[key] = stillInvalid[key]
+        }
+        return kept
+      })
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    const found = validate(form)
+    setErrors(found)
+    setSubmitError('')
+
+    const firstInvalid = FIELD_ORDER.find((key) => found[key])
+    if (firstInvalid) {
+      formRef.current?.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus()
+      return
+    }
+
+    setSaving(true)
+    try {
+      await onSave({ id: task?.id ?? '', ...form })
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Gagal menyimpan lead.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const missingLabels = REQUIRED_FIELDS.filter(({ key }) => errors[key]).map(({ label }) => label)
+  const fieldClass = (key: CheckedField) => `lead-field${errors[key] ? ' has-error' : ''}`
+  const fieldError = (key: CheckedField) =>
+    errors[key] ? (
+      <small className="lead-field-error" id={`lead-${key}-error`}>
+        {errors[key]}
+      </small>
+    ) : null
+  const inputA11y = (key: CheckedField) => ({
+    name: key,
+    'aria-invalid': errors[key] ? true : undefined,
+    'aria-describedby': errors[key] ? `lead-${key}-error` : undefined,
+  })
 
   return (
     <Modal title={task ? 'Edit Lead' : 'Tambah Lead'} onClose={onClose}>
-      <form className="lead-form" onSubmit={handleSubmit}>
-        <label className="lead-field">
-          <span>Nama Deal</span>
+      <form className="lead-form" onSubmit={handleSubmit} noValidate ref={formRef}>
+        {(missingLabels.length > 0 || errors.email) && (
+          <div className="lead-form-alert" role="alert">
+            {missingLabels.length > 0
+              ? `Lengkapi dulu: ${missingLabels.join(', ')}.`
+              : 'Periksa kembali kolom yang ditandai merah.'}
+          </div>
+        )}
+        {submitError && (
+          <div className="lead-form-alert" role="alert">
+            {submitError}
+          </div>
+        )}
+
+        <label className={fieldClass('title')}>
+          <span>
+            Nama Deal <RequiredMark />
+          </span>
           <input
+            {...inputA11y('title')}
             value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onChange={(e) => update({ title: e.target.value })}
             placeholder="Wedding Amanda & Rizky"
-            required
           />
+          {fieldError('title')}
         </label>
 
         <div className="lead-field-row">
-          <label className="lead-field">
-            <span>Customer</span>
+          <label className={fieldClass('customer')}>
+            <span>
+              Customer <RequiredMark />
+            </span>
             <input
+              {...inputA11y('customer')}
               value={form.customer}
-              onChange={(e) => setForm({ ...form, customer: e.target.value })}
+              onChange={(e) => update({ customer: e.target.value })}
               placeholder="Nama customer / perusahaan"
-              required
             />
+            {fieldError('customer')}
           </label>
-          <label className="lead-field">
-            <span>No. Telepon</span>
-            <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+62 812..." />
+          <label className={fieldClass('phone')}>
+            <span>
+              No. Telepon <RequiredMark />
+            </span>
+            <input
+              {...inputA11y('phone')}
+              type="tel"
+              value={form.phone}
+              onChange={(e) => update({ phone: e.target.value })}
+              placeholder="+62 812..."
+            />
+            {fieldError('phone')}
           </label>
         </div>
 
         <div className="lead-field-row">
-          <label className="lead-field">
+          <label className={fieldClass('email')}>
             <span>
               Email <em className="lead-field-optional">(opsional)</em>
             </span>
             <input
+              {...inputA11y('email')}
               type="email"
               value={form.email ?? ''}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={(e) => update({ email: e.target.value })}
               placeholder="nama@email.com"
             />
+            {fieldError('email')}
           </label>
-          <label className="lead-field">
-            <span>Mobil / Armada</span>
-            <input value={form.vehicle} onChange={(e) => setForm({ ...form, vehicle: e.target.value })} placeholder="Alphard 2024" />
+          <label className={fieldClass('vehicle')}>
+            <span>
+              Mobil / Armada <RequiredMark />
+            </span>
+            <input
+              {...inputA11y('vehicle')}
+              value={form.vehicle}
+              onChange={(e) => update({ vehicle: e.target.value })}
+              placeholder="Alphard 2024"
+            />
+            {fieldError('vehicle')}
           </label>
         </div>
 
@@ -93,7 +213,7 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
             <span>Temperature</span>
             <select
               value={form.temperature}
-              onChange={(e) => setForm({ ...form, temperature: e.target.value as LeadTemperature })}
+              onChange={(e) => update({ temperature: e.target.value as LeadTemperature })}
             >
               {TEMPERATURE_OPTIONS.map((t) => (
                 <option key={t} value={t}>
@@ -104,7 +224,7 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
           </label>
           <label className="lead-field">
             <span>Status / Stage</span>
-            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as KanbanTask['status'] })}>
+            <select value={form.status} onChange={(e) => update({ status: e.target.value as KanbanTask['status'] })}>
               {taskColumns.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.title}
@@ -121,7 +241,7 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
               type="number"
               min={0}
               value={form.amount}
-              onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
+              onChange={(e) => update({ amount: Number(e.target.value) })}
             />
           </label>
         </div>
@@ -135,19 +255,19 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
               value={isoToLocalInput(form.createdAt)}
               onChange={(e) => {
                 const iso = localInputToIso(e.target.value)
-                if (iso) setForm({ ...form, createdAt: iso })
+                if (iso) update({ createdAt: iso })
               }}
             />
           </label>
           <label className="lead-field">
             <span>Target / Jatuh Tempo</span>
-            <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+            <input type="date" value={form.dueDate} onChange={(e) => update({ dueDate: e.target.value })} />
           </label>
         </div>
 
         <label className="lead-field">
           <span>Catatan</span>
-          <textarea rows={2} value={form.notes ?? ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+          <textarea rows={2} value={form.notes ?? ''} onChange={(e) => update({ notes: e.target.value })} />
         </label>
 
         {task?.updatedAt && (
@@ -157,7 +277,9 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
         )}
 
         <div className="lead-form-actions">
-          <Button type="submit">{task ? 'Simpan Perubahan' : 'Tambah Lead'}</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? 'Menyimpan...' : task ? 'Simpan Perubahan' : 'Tambah Lead'}
+          </Button>
           <Button type="button" variant="ghost" onClick={onClose}>
             Batal
           </Button>

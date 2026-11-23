@@ -152,3 +152,33 @@
   color: var(--text-soft);
   font-variant-numeric: tabular-nums;
 }
+
+.lead-field-required {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.lead-field.has-error input,
+.lead-field.has-error select,
+.lead-field.has-error textarea {
+  border-color: var(--danger);
+}
+
+.lead-field.has-error input:focus {
+  box-shadow: 0 0 0 3px var(--danger-bg);
+}
+
+.lead-field-error {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--danger);
+}
+
+.lead-form-alert {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 11.5px;
+  font-weight: 500;
+}
