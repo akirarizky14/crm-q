@@ -14,20 +14,32 @@ async function loadExcelJs(): Promise<typeof import('exceljs')> {
   return mod.default ?? mod
 }
 
-/** A YYYY-MM-DD string as a Date at UTC midnight, which Excel shows as exactly that day. */
-function isoToExcelDate(iso: string): Date | string {
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : iso
+// Excel dates have no time zone: exceljs writes a Date's UTC parts as the cell's wall clock.
+// So local (WIB) parts are packed into a UTC Date, and read back the same way.
+
+/** A YYYY-MM-DD day as an Excel date showing exactly that day. */
+function dayToExcelDate(day: string): Date | string {
+  const m = day.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : day
+}
+
+/** A UTC ISO timestamp as an Excel date-time showing the local (WIB) wall-clock time. */
+function isoToExcelDateTime(iso: string | undefined): Date | string {
+  if (!iso) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return dayToExcelDate(iso)
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()))
 }
 
 function cellToString(value: CellValue): string {
   if (value === null || value === undefined) return ''
   if (value instanceof Date) {
-    // exceljs returns dates at UTC midnight; read the UTC parts so the day doesn't shift.
-    const y = value.getUTCFullYear()
-    const m = String(value.getUTCMonth() + 1).padStart(2, '0')
-    const d = String(value.getUTCDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
+    // The UTC parts are the wall-clock value shown in Excel; add the time only if it has one.
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const day = `${value.getUTCFullYear()}-${pad(value.getUTCMonth() + 1)}-${pad(value.getUTCDate())}`
+    const [h, m, s] = [value.getUTCHours(), value.getUTCMinutes(), value.getUTCSeconds()]
+    return h || m || s ? `${day} ${pad(h)}:${pad(m)}:${pad(s)}` : day
   }
   if (typeof value !== 'object') return String(value)
   if ('richText' in value) return value.richText.map((part) => part.text).join('')
@@ -75,7 +87,7 @@ function addInstructionsSheet(workbook: import('exceljs').Workbook) {
     '3. Email opsional. Email yang formatnya salah akan dikosongkan.',
     `4. Temperature: pilih dari dropdown (${TEMPERATURE_OPTIONS.join(' / ')}). Jika kosong, otomatis Cold.`,
     `5. Status: pilih dari dropdown (${taskColumns.map((c) => c.title).join(' / ')}). Jika kosong, otomatis Inquiry.`,
-    '6. Tanggal: isi sebagai tanggal Excel, atau ketik 2026-11-23 / 23/11/2026. Tanggal Masuk kosong = hari ini.',
+    '6. Tanggal Masuk boleh pakai jam: 2026-11-23 14:05:12 atau 23/11/2026 14:05. Tanpa jam: hari ini = jam sekarang, tanggal lain = 00:00. Kosong = sekarang.',
     '7. Nilai (Rp): angka saja, tanpa "Rp" (contoh 45000000).',
     '8. Simpan sebagai .xlsx, lalu upload lewat tombol Import di CRM.',
   ]
@@ -95,11 +107,16 @@ export async function buildLeadsWorkbook(leads: KanbanTask[]): Promise<ArrayBuff
   workbook.created = new Date()
 
   const sheet = workbook.addWorksheet(SHEET_NAME, { views: [{ state: 'frozen', ySplit: 1 }] })
-  sheet.columns = LEAD_COLUMNS.map((c) => ({
-    header: c.required ? `${c.header} *` : c.header,
-    key: c.key,
-    width: c.width,
-  }))
+  // Exports also show when each lead was last updated (informational; ignored on import).
+  const includeUpdatedAt = leads.some((l) => l.updatedAt)
+  sheet.columns = [
+    ...LEAD_COLUMNS.map((c) => ({
+      header: c.required ? `${c.header} *` : c.header,
+      key: c.key,
+      width: c.width,
+    })),
+    ...(includeUpdatedAt ? [{ header: 'Terakhir Update', key: 'updatedAt', width: 20 }] : []),
+  ]
 
   const header = sheet.getRow(1)
   header.font = { bold: true, color: { argb: 'FF3A2E12' } }
@@ -110,7 +127,8 @@ export async function buildLeadsWorkbook(leads: KanbanTask[]): Promise<ArrayBuff
   // Text format keeps leading zeros / "+62" in phone numbers; dates and amounts get readable formats.
   sheet.getColumn('phone').numFmt = '@'
   sheet.getColumn('amount').numFmt = '#,##0'
-  sheet.getColumn('createdAt').numFmt = 'yyyy-mm-dd'
+  sheet.getColumn('createdAt').numFmt = 'yyyy-mm-dd hh:mm:ss'
+  if (includeUpdatedAt) sheet.getColumn('updatedAt').numFmt = 'yyyy-mm-dd hh:mm:ss'
   sheet.getColumn('dueDate').numFmt = 'yyyy-mm-dd'
 
   for (const lead of leads) {
@@ -123,8 +141,9 @@ export async function buildLeadsWorkbook(leads: KanbanTask[]): Promise<ArrayBuff
       temperature: lead.temperature,
       amount: lead.amount,
       status: statusLabel(lead.status),
-      createdAt: isoToExcelDate(lead.createdAt),
-      dueDate: isoToExcelDate(lead.dueDate),
+      createdAt: isoToExcelDateTime(lead.createdAt),
+      dueDate: dayToExcelDate(lead.dueDate),
+      updatedAt: isoToExcelDateTime(lead.updatedAt),
       notes: lead.notes ?? '',
     })
     if (isTemplateExample(lead)) row.font = { italic: true, color: { argb: 'FF8A8A8A' } }

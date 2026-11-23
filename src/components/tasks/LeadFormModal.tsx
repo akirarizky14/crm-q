@@ -3,7 +3,8 @@ import { Trash2 } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import { taskColumns, type KanbanTask, type LeadTemperature } from '../../data/mock'
-import { TEMPERATURE_OPTIONS } from '../../lib/leads'
+import { TEMPERATURE_OPTIONS, todayLocalIso } from '../../lib/leads'
+import { formatDateTime, isoToLocalInput, localInputToIso } from '../../lib/format'
 import './tasks-forms.css'
 
 interface LeadFormModalProps {
@@ -14,7 +15,7 @@ interface LeadFormModalProps {
 }
 
 function emptyForm(): Omit<KanbanTask, 'id'> {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayLocalIso()
   return {
     title: '',
     customer: '',
@@ -23,7 +24,7 @@ function emptyForm(): Omit<KanbanTask, 'id'> {
     vehicle: '',
     temperature: 'Warm',
     amount: 0,
-    createdAt: today,
+    createdAt: new Date().toISOString(),
     dueDate: today,
     status: 'inquiry',
     notes: '',
@@ -127,8 +128,16 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
 
         <div className="lead-field-row">
           <label className="lead-field">
-            <span>Tanggal Masuk</span>
-            <input type="date" value={form.createdAt} onChange={(e) => setForm({ ...form, createdAt: e.target.value })} />
+            <span>Tanggal &amp; Jam Masuk</span>
+            <input
+              type="datetime-local"
+              step={1}
+              value={isoToLocalInput(form.createdAt)}
+              onChange={(e) => {
+                const iso = localInputToIso(e.target.value)
+                if (iso) setForm({ ...form, createdAt: iso })
+              }}
+            />
           </label>
           <label className="lead-field">
             <span>Target / Jatuh Tempo</span>
@@ -140,6 +149,12 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
           <span>Catatan</span>
           <textarea rows={2} value={form.notes ?? ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         </label>
+
+        {task?.updatedAt && (
+          <p className="lead-form-meta">
+            Masuk {formatDateTime(task.createdAt)} · Terakhir update {formatDateTime(task.updatedAt)}
+          </p>
+        )}
 
         <div className="lead-form-actions">
           <Button type="submit">{task ? 'Simpan Perubahan' : 'Tambah Lead'}</Button>

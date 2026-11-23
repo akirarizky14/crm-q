@@ -23,12 +23,13 @@ import {
   Search,
   X,
   CalendarDays,
+  Clock,
 } from 'lucide-react'
 import { taskColumns, type KanbanTask, type LeadTemperature, type TaskStatus } from '../data/mock'
 import { TEMPERATURE_META, TEMPERATURE_OPTIONS } from '../lib/leads'
 import { fetchLeads, fetchLeadsPage, createLead, updateLead, deleteLead } from '../api/leads'
 import { downloadLeadsWorkbook } from '../lib/leadsExcel'
-import { formatRupiah } from '../lib/format'
+import { formatDateTime, formatRupiah, localDayStartIso, localNextDayStartIso } from '../lib/format'
 import { Button } from '../components/ui/Button'
 import { LeadFormModal } from '../components/tasks/LeadFormModal'
 import { ImportDialog } from '../components/tasks/ImportDialog'
@@ -103,12 +104,6 @@ function monthRange(offset: number): { from: string; to: string } {
   return { from: toLocalIsoDate(start), to: toLocalIsoDate(end) }
 }
 
-/** Inserts a task into a newest-first list at its created-date position (optimistic update). */
-function insertByCreatedDesc(items: KanbanTask[], task: KanbanTask): KanbanTask[] {
-  const index = items.findIndex((t) => t.createdAt <= task.createdAt)
-  if (index === -1) return [...items, task]
-  return [...items.slice(0, index), task, ...items.slice(index)]
-}
 
 function TaskCard({
   task,
@@ -160,6 +155,12 @@ function TaskCard({
       <strong>{task.title}</strong>
       <span className="task-customer">{task.customer}</span>
       <span className="task-vehicle">{task.vehicle}</span>
+      <span
+        className="task-created"
+        title={`Masuk: ${formatDateTime(task.createdAt)}\nTerakhir update: ${formatDateTime(task.updatedAt)}`}
+      >
+        <Clock size={10} /> {formatDateTime(task.createdAt)}
+      </span>
       <div className="task-footer">
         <span className="task-amount">{formatRupiah(task.amount)}</span>
         <span className="task-due">{formatDateShort(task.dueDate)}</span>
@@ -345,8 +346,9 @@ export function TasksPage() {
         pageSize: PAGE_SIZE,
         search: [debouncedSearch, debouncedColumnSearch[status]],
         temperature: columnTemp[status] === 'all' ? undefined : columnTemp[status],
-        from: dateFrom || undefined,
-        to: dateTo || undefined,
+        // Local (WIB) calendar days → exact UTC instants, since created_at includes the time.
+        from: dateFrom ? localDayStartIso(dateFrom) : undefined,
+        to: dateTo ? localNextDayStartIso(dateTo) : undefined,
       }
       const key = JSON.stringify([query, versions[status]])
       if (loadedKeys.current[status] === key) continue
@@ -485,7 +487,8 @@ export function TasksPage() {
       },
       [to]: {
         ...prev[to],
-        items: insertByCreatedDesc(prev[to].items, { ...task, status: to }),
+        // Moving a card counts as an update, and columns list the latest activity first.
+        items: [{ ...task, status: to }, ...prev[to].items],
         total: prev[to].total + 1,
       },
     }))
@@ -536,7 +539,10 @@ export function TasksPage() {
 
   function exportLeads(filename: string, from?: string, to?: string) {
     setShowExportMenu(false)
-    fetchLeads({ from, to })
+    fetchLeads({
+      from: from ? localDayStartIso(from) : undefined,
+      to: to ? localNextDayStartIso(to) : undefined,
+    })
       .then((leads) => downloadLeadsWorkbook(filename, leads))
       .catch(() => setError('Gagal mengekspor data lead.'))
   }

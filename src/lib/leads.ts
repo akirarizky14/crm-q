@@ -27,7 +27,7 @@ export const LEAD_COLUMNS = [
   { key: 'temperature', header: 'Temperature', required: false, width: 14 },
   { key: 'amount', header: 'Nilai (Rp)', required: false, width: 16 },
   { key: 'status', header: 'Status', required: false, width: 18 },
-  { key: 'createdAt', header: 'Tanggal Masuk', required: false, width: 16 },
+  { key: 'createdAt', header: 'Tanggal Masuk', required: false, width: 20 },
   { key: 'dueDate', header: 'Target / Jatuh Tempo', required: false, width: 20 },
   { key: 'notes', header: 'Catatan', required: false, width: 40 },
 ] as const
@@ -49,17 +49,48 @@ export function todayLocalIso(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-/** Accepts YYYY-MM-DD, or D/M/YYYY and D-M-YYYY (Indonesian day-first). Returns YYYY-MM-DD or ''. */
-function parseDateInput(value: string): string {
+const TIME_PART = '(?:[ T](\\d{1,2})[:.](\\d{2})(?:[:.](\\d{2}))?)?'
+const YEAR_FIRST_RE = new RegExp(`^(\\d{4})-(\\d{1,2})-(\\d{1,2})${TIME_PART}$`)
+const DAY_FIRST_RE = new RegExp(`^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{4})${TIME_PART}$`)
+
+/**
+ * Parses a local (WIB) date with optional time: YYYY-MM-DD[ HH:mm[:ss]] or Indonesian
+ * day-first D/M/YYYY[ HH:mm[:ss]]. Returns the calendar day, the local Date, and whether
+ * a time was given; null when it isn't a valid date.
+ */
+function parseLocalDateTime(value: string): { day: string; date: Date; hasTime: boolean } | null {
   let y: number, m: number, d: number
-  const iso = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)
-  const dayFirst = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
-  if (iso) [y, m, d] = [Number(iso[1]), Number(iso[2]), Number(iso[3])]
-  else if (dayFirst) [d, m, y] = [Number(dayFirst[1]), Number(dayFirst[2]), Number(dayFirst[3])]
-  else return ''
-  const date = new Date(Date.UTC(y, m - 1, d))
-  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return ''
-  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  let time: (string | undefined)[]
+  const yearFirst = value.match(YEAR_FIRST_RE)
+  const dayFirst = value.match(DAY_FIRST_RE)
+  if (yearFirst) {
+    ;[y, m, d] = [Number(yearFirst[1]), Number(yearFirst[2]), Number(yearFirst[3])]
+    time = yearFirst.slice(4)
+  } else if (dayFirst) {
+    ;[d, m, y] = [Number(dayFirst[1]), Number(dayFirst[2]), Number(dayFirst[3])]
+    time = dayFirst.slice(4)
+  } else return null
+
+  const [hh, mm, ss] = time.map((t) => Number(t ?? 0))
+  const date = new Date(y, m - 1, d, hh, mm, ss)
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d || hh > 23 || mm > 59 || ss > 59) {
+    return null
+  }
+  const day = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  return { day, date, hasTime: time[0] !== undefined }
+}
+
+/** Created timestamp for an imported row: given time → that moment; today without a time → now; another day → its local midnight. */
+function importedCreatedAt(raw: string): string {
+  const parsed = parseLocalDateTime(raw)
+  if (!parsed) return new Date().toISOString()
+  if (!parsed.hasTime && parsed.day === todayLocalIso()) return new Date().toISOString()
+  return parsed.date.toISOString()
+}
+
+function localDayOf(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function normalizeHeader(header: string): LeadColumnKey | null {
@@ -95,8 +126,8 @@ export function rowToLead(row: string[], headers: string[]): KanbanTask | null {
   const rawAmount = get('amount').replace(/[^0-9]/g, '')
   const amount = rawAmount ? parseInt(rawAmount, 10) : 0
 
-  const createdAt = parseDateInput(get('createdAt')) || todayLocalIso()
-  const dueDate = parseDateInput(get('dueDate')) || createdAt
+  const createdAt = importedCreatedAt(get('createdAt'))
+  const dueDate = parseLocalDateTime(get('dueDate'))?.day ?? localDayOf(createdAt)
 
   const email = get('email')
 
@@ -137,7 +168,7 @@ export function templateExampleLead(): KanbanTask {
     temperature: 'Cold',
     amount: 45_000_000,
     status: 'inquiry',
-    createdAt: today,
+    createdAt: new Date().toISOString(),
     dueDate: today,
     notes: 'Baris contoh ini otomatis dilewati saat import',
   }

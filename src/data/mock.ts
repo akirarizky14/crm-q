@@ -75,6 +75,7 @@ export interface KanbanTask {
   temperature: LeadTemperature
   amount: number
   createdAt: string
+  updatedAt?: string
   dueDate: string
   status: TaskStatus
   notes?: string
