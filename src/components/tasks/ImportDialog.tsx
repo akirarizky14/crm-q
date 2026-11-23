@@ -1,52 +1,69 @@
 import { useState, type ChangeEvent } from 'react'
 import { FileDown, Upload } from 'lucide-react'
 import { Modal } from '../ui/Modal'
-import { parseCsv, toCsv, downloadCsv } from '../../lib/csv'
-import { LEAD_CSV_HEADERS, IMPORT_TEMPLATE_EXAMPLE_ROW, csvRowToLead } from '../../lib/leads'
+import { isTemplateExample, rowToLead, templateExampleLead } from '../../lib/leads'
+import { downloadLeadsWorkbook, readLeadRows, UnsupportedFileError } from '../../lib/leadsExcel'
 import type { KanbanTask } from '../../data/mock'
 import './tasks-forms.css'
 
 interface ImportDialogProps {
   onClose: () => void
-  onImport: (tasks: KanbanTask[]) => void
+  onImport: (tasks: KanbanTask[]) => Promise<{ created: number; failed: number }>
+}
+
+interface ImportSummary {
+  imported: number
+  skipped: number
+  failed: number
 }
 
 export function ImportDialog({ onClose, onImport }: ImportDialogProps) {
-  const [summary, setSummary] = useState<{ imported: number; skipped: number } | null>(null)
+  const [summary, setSummary] = useState<ImportSummary | null>(null)
+  const [fileError, setFileError] = useState('')
+  const [busy, setBusy] = useState<string | null>(null)
 
   function handleDownloadTemplate() {
-    const csv = toCsv([...LEAD_CSV_HEADERS], [IMPORT_TEMPLATE_EXAMPLE_ROW])
-    downloadCsv('crown-crm-template-leads.csv', csv)
+    setBusy('Menyiapkan template...')
+    downloadLeadsWorkbook('crown-crm-template-leads.xlsx', [templateExampleLead()])
+      .catch(() => setFileError('Gagal membuat template Excel.'))
+      .finally(() => setBusy(null))
   }
 
-  function handleFile(e: ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = () => {
-      const text = String(reader.result ?? '')
-      const rows = parseCsv(text)
-      if (rows.length < 2) {
-        setSummary({ imported: 0, skipped: 0 })
-        return
-      }
-      const [headerRow, ...dataRows] = rows
-      const headers = headerRow.map((h) => h.trim())
+    setSummary(null)
+    setFileError('')
+    setBusy('Membaca file...')
+    try {
+      const { headers, rows } = await readLeadRows(file)
       const leads: KanbanTask[] = []
       let skipped = 0
-
-      for (const row of dataRows) {
-        const lead = csvRowToLead(row, headers)
-        if (lead) leads.push(lead)
-        else skipped++
+      for (const row of rows) {
+        const lead = rowToLead(row, headers)
+        if (!lead) skipped++
+        else if (!isTemplateExample(lead)) leads.push(lead)
       }
 
-      onImport(leads)
-      setSummary({ imported: leads.length, skipped })
+      if (leads.length === 0) {
+        setSummary({ imported: 0, skipped, failed: 0 })
+        return
+      }
+
+      setBusy(`Mengimpor ${leads.length} lead...`)
+      const { created, failed } = await onImport(leads)
+      setSummary({ imported: created, skipped, failed })
+    } catch (err) {
+      setFileError(
+        err instanceof UnsupportedFileError
+          ? err.message
+          : 'File tidak bisa dibaca. Pastikan file Excel (.xlsx) dari template ini.'
+      )
+    } finally {
+      setBusy(null)
     }
-    reader.readAsText(file)
-    e.target.value = ''
   }
 
   return (
@@ -54,27 +71,41 @@ export function ImportDialog({ onClose, onImport }: ImportDialogProps) {
       <div className="import-steps">
         <div className="import-step">
           <span className="import-step-label">1. Unduh Template</span>
-          <button type="button" className="import-template-link" onClick={handleDownloadTemplate}>
-            <FileDown size={15} /> Download Template CSV
+          <button type="button" className="import-template-link" onClick={handleDownloadTemplate} disabled={busy !== null}>
+            <FileDown size={15} /> Download Template Excel
           </button>
         </div>
 
         <div className="import-step">
           <span className="import-step-label">2. Isi &amp; Upload</span>
           <p style={{ fontSize: 13, color: 'var(--text-soft)', margin: 0 }}>
-            Isi template sesuai kolom (temperature: Hot/Warm/Cold, status: inquiry/survey/kontrak/berjalan/selesai,
-            tanggal format YYYY-MM-DD), lalu upload di sini.
+            Isi sheet <strong>Leads</strong> di template. Kolom bertanda * wajib diisi; Temperature dan Status
+            tinggal pilih dari dropdown. Petunjuk lengkap ada di sheet <strong>Petunjuk</strong>.
           </p>
-          <label className="import-template-link" style={{ cursor: 'pointer' }}>
-            <Upload size={15} /> Pilih File CSV
-            <input type="file" accept=".csv,text/csv" className="import-file-input" onChange={handleFile} hidden />
+          <label
+            className="import-template-link"
+            style={{ cursor: busy !== null ? 'wait' : 'pointer', opacity: busy !== null ? 0.6 : 1 }}
+          >
+            <Upload size={15} /> {busy ?? 'Pilih File Excel'}
+            <input
+              type="file"
+              accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+              className="import-file-input"
+              onChange={handleFile}
+              disabled={busy !== null}
+              hidden
+            />
           </label>
         </div>
 
+        {fileError && <div className="import-summary has-errors">{fileError}</div>}
+
         {summary && (
-          <div className={`import-summary${summary.skipped > 0 ? ' has-errors' : ''}`}>
-            {summary.imported} lead berhasil diimport
-            {summary.skipped > 0 ? `, ${summary.skipped} baris dilewati karena data tidak valid.` : '.'}
+          <div className={`import-summary${summary.skipped > 0 || summary.failed > 0 ? ' has-errors' : ''}`}>
+            {summary.imported} lead berhasil diimport.
+            {summary.skipped > 0 &&
+              ` ${summary.skipped} baris dilewati (Nama Deal, Customer, No. Telepon, dan Mobil / Armada wajib diisi).`}
+            {summary.failed > 0 && ` ${summary.failed} lead gagal disimpan ke server.`}
           </div>
         )}
       </div>

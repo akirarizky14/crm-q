@@ -139,3 +139,9 @@
   background: var(--warning-bg);
   color: var(--warning);
 }
+
+.lead-field-optional {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-soft);
+}

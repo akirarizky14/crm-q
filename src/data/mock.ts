@@ -61,7 +61,7 @@ export interface VehicleEvent {
   createdAt: string
 }
 
-export type TaskStatus = 'inquiry' | 'survey' | 'kontrak' | 'berjalan' | 'selesai'
+export type TaskStatus = 'inquiry' | 'contacted' | 'survey' | 'kontrak' | 'berjalan' | 'selesai' | 'reject'
 
 export type LeadTemperature = 'Hot' | 'Warm' | 'Cold'
 
@@ -70,6 +70,7 @@ export interface KanbanTask {
   title: string
   customer: string
   phone: string
+  email?: string
   vehicle: string
   temperature: LeadTemperature
   amount: number
@@ -81,10 +82,12 @@ export interface KanbanTask {
 
 export const taskColumns: { id: TaskStatus; title: string }[] = [
   { id: 'inquiry', title: 'Inquiry' },
-  { id: 'survey', title: 'Survey Mobil' },
-  { id: 'kontrak', title: 'Kontrak Ditandatangani' },
+  { id: 'contacted', title: 'Contacted' },
+  { id: 'survey', title: 'Survey' },
+  { id: 'kontrak', title: 'Kontrak' },
   { id: 'berjalan', title: 'Sedang Berjalan' },
   { id: 'selesai', title: 'Selesai' },
+  { id: 'reject', title: 'Reject' },
 ]
 
 export const initialTasks: KanbanTask[] = [

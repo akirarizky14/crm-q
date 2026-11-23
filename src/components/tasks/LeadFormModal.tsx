@@ -19,6 +19,7 @@ function emptyForm(): Omit<KanbanTask, 'id'> {
     title: '',
     customer: '',
     phone: '',
+    email: '',
     vehicle: '',
     temperature: 'Warm',
     amount: 0,
@@ -68,10 +69,23 @@ export function LeadFormModal({ task, onClose, onSave, onDelete }: LeadFormModal
           </label>
         </div>
 
-        <label className="lead-field">
-          <span>Mobil / Armada</span>
-          <input value={form.vehicle} onChange={(e) => setForm({ ...form, vehicle: e.target.value })} placeholder="Alphard 2024" />
-        </label>
+        <div className="lead-field-row">
+          <label className="lead-field">
+            <span>
+              Email <em className="lead-field-optional">(opsional)</em>
+            </span>
+            <input
+              type="email"
+              value={form.email ?? ''}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="nama@email.com"
+            />
+          </label>
+          <label className="lead-field">
+            <span>Mobil / Armada</span>
+            <input value={form.vehicle} onChange={(e) => setForm({ ...form, vehicle: e.target.value })} placeholder="Alphard 2024" />
+          </label>
+        </div>
 
         <div className="lead-field-row">
           <label className="lead-field">

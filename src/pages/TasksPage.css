@@ -51,6 +51,59 @@
   }
 }
 
+.tasks-date-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  color: var(--text-soft);
+}
+
+.tasks-date-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.tasks-date-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.tasks-date-presets button {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tasks-date-presets button.is-active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent-strong);
+}
+
+.tasks-date-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tasks-date-range input {
+  padding: 5px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-h);
+}
+
 .tasks-export-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -154,7 +207,25 @@
   align-items: flex-start;
   overflow-x: auto;
   padding-bottom: 8px;
-  scroll-snap-type: x proximity;
+}
+
+/* Column snapping only helps touch swiping on phones; on desktop it fights
+   the mirrored top scrollbar and makes dragging it jerky. */
+@media (max-width: 720px) {
+  .kanban-board {
+    scroll-snap-type: x proximity;
+  }
+}
+
+.kanban-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: var(--text-soft) var(--border-soft);
+}
+
+.kanban-top-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: -6px;
 }
 
 .kanban-column {
@@ -187,6 +258,84 @@
   color: var(--text-h);
 }
 
+.kanban-column-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kanban-column-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+}
+
+.kanban-column-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-h);
+}
+
+.kanban-column-search input::placeholder {
+  color: var(--text-soft);
+}
+
+.kanban-column-search button {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.kanban-temp-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.kanban-temp-filter button {
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.kanban-temp-filter button.is-active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent-strong);
+}
+
+.kanban-temp-filter button.temp-hot.is-active {
+  background: var(--danger-bg);
+  border-color: transparent;
+  color: var(--danger);
+}
+
+.kanban-temp-filter button.temp-warm.is-active {
+  background: var(--warning-bg);
+  border-color: transparent;
+  color: var(--warning);
+}
+
 .kanban-count {
   font-size: 10.5px;
   font-weight: 600;
@@ -209,6 +358,39 @@
 .kanban-dropzone.is-over {
   background: var(--accent-bg);
   outline: 2px dashed var(--accent-border);
+}
+
+.kanban-dropzone.is-loading {
+  opacity: 0.6;
+}
+
+.kanban-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.kanban-pagination button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.kanban-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .kanban-empty {

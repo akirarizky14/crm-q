@@ -1,4 +1,21 @@
-export function parseCsv(text: string): string[][] {
+/** Picks "," or ";" by counting them (outside quotes) on the header line. Excel with an
+ * Indonesian locale saves CSV with ";" as the separator. */
+function detectDelimiter(text: string): ',' | ';' {
+  let commas = 0
+  let semicolons = 0
+  let inQuotes = false
+  for (const char of text) {
+    if (char === '"') inQuotes = !inQuotes
+    else if (!inQuotes && (char === '\n' || char === '\r')) break
+    else if (!inQuotes && char === ',') commas++
+    else if (!inQuotes && char === ';') semicolons++
+  }
+  return semicolons > commas ? ';' : ','
+}
+
+export function parseCsv(rawText: string): string[][] {
+  const text = rawText.replace(/^\uFEFF/, '')
+  const delimiter = detectDelimiter(text)
   const rows: string[][] = []
   let row: string[] = []
   let field = ''
@@ -23,7 +40,7 @@ export function parseCsv(text: string): string[][] {
 
     if (char === '"') {
       inQuotes = true
-    } else if (char === ',') {
+    } else if (char === delimiter) {
       row.push(field)
       field = ''
     } else if (char === '\n' || char === '\r') {
@@ -43,27 +60,4 @@ export function parseCsv(text: string): string[][] {
   }
 
   return rows.filter((r) => !(r.length === 1 && r[0].trim() === ''))
-}
-
-function csvEscape(value: string): string {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
-  }
-  return value
-}
-
-export function toCsv(headers: string[], rows: string[][]): string {
-  return [headers, ...rows].map((r) => r.map(csvEscape).join(',')).join('\r\n')
-}
-
-export function downloadCsv(filename: string, csv: string) {
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }
